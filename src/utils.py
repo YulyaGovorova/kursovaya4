@@ -1,22 +1,59 @@
+import json
+from abc import ABC, abstractmethod
+from typing import List
+
 from src.vacancy_class import Vacancy
 
 
-def sort_vacancies(filtered_vacancies):
-    return sorted(filtered_vacancies)
+class VacancySaver(ABC):
+    @abstractmethod
+    def add_vacancy(self, vacancy: Vacancy):
+        pass
 
-def filter_vacancies(hh_vacancies, superjob_vacancies, filter_words):
-    filtered_vacancies = []
-    for vacancy in hh_vacancies + superjob_vacancies:
-        description = vacancy["description"]
-        if all(word in description.lower() for word in filter_words):
-            filtered_vacancies.append(Vacancy(
-                name=vacancy.get("name", vacancy.get("profession")),
-                salary=vacancy.get("salary", vacancy.get("payment_from")),
-                link=vacancy.get("url", vacancy.get("link")),
-                description=description
-            ))
-    return filtered_vacancies
+    @abstractmethod
+    def get_vacancies_by_salary(self, salary: str) -> List[Vacancy]:
+        pass
 
-def print_vacancies(vacancies):
-    for vacancy in vacancies:
-        print(vacancy)
+    @abstractmethod
+    def delete_vacancy(self, vacancy: Vacancy):
+        pass
+
+
+class JSONSaver(VacancySaver):
+    def __init__(self, filename):
+        self.filename = filename
+
+    def add_vacancy(self, vacancy: Vacancy):
+        with open(self.filename, 'r') as file:
+            data = json.load(file)
+
+        data.append(vars(vacancy))
+
+        with open(self.filename, 'w') as file:
+            json.dump(data, file)
+
+    def get_vacancies_by_salary(self, salary: str) -> List[Vacancy]:
+        with open(self.filename, 'r') as file:
+            data = json.load(file)
+
+        vacancies = []
+        for vacancy_data in data:
+            vacancy = Vacancy(**vacancy_data)
+            if vacancy.salary == salary:
+                vacancies.append(vacancy)
+
+        return vacancies
+
+    def delete_vacancy(self, vacancy: Vacancy):
+        with open(self.filename, 'r') as file:
+            data = json.load(file)
+
+        for vacancy_data in data:
+            if vacancy_data['name'] == vacancy.name and vacancy_data['salary'] == vacancy.salary and vacancy_data[
+                'link'] == vacancy.link:
+                data.remove(vacancy_data)
+                break
+
+        with open(self.filename, 'w') as file:
+            json.dump(data, file)
+
