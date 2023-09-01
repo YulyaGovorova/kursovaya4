@@ -1,51 +1,50 @@
 import pytest
 
-from src.main import Vacancy
+from src.get_class import SJAPI, HHAPI
+from src.main import sort_vacancies
+from src.utils import JSONSaver
+from src.vacancy_class import Vacancy
 
+
+@pytest.fixture
+def hh_api():
+    return HHAPI("Python")
+
+@pytest.fixture
+def sj_api():
+    return SJAPI("Python")
+
+@pytest.fixture
+def json_saver():
+    return JSONSaver("vacancies.json")
+
+def test_get_hh_vacancies(hh_api):
+    vacancies = hh_api.get_hh_vacancies()
+    assert isinstance(vacancies, list)
+    assert all(isinstance(vacancy, Vacancy) for vacancy in vacancies)
+
+def test_get_superjob_vacancies(sj_api):
+    vacancies = sj_api.get_superjob_vacancies()
+    assert isinstance(vacancies, list)
+    assert all(isinstance(vacancy, Vacancy) for vacancy in vacancies)
+
+def test_add_vacancy(json_saver):
+    vacancy = Vacancy("Test", "50000", "test.com")
+    json_saver.add_vacancy(vacancy)
+    vacancies = json_saver.get_vacancies_by_salary("50000")
+    assert vacancy in vacancies
+
+def test_delete_vacancy(json_saver):
+    vacancy = Vacancy("Test", "50000", "test.com")
+    json_saver.add_vacancy(vacancy)
+    json_saver.delete_vacancy(vacancy)
+    vacancies = json_saver.get_vacancies_by_salary("50000")
+    assert vacancy not in vacancies
 
 def test_sort_vacancies():
-    vacancies = [
-        Vacancy("Вакансия 1", 50000, "https://hh.ru/vacancy/1"),
-        Vacancy("Вакансия 2", 60000, "https://hh.ru/vacancy/2"),
-        Vacancy("Вакансия 3", 40000, "https://hh.ru/vacancy/3")
-    ]
-    sorted_vacancies = sort_vacancies(vacancies)
-    assert sorted_vacancies[0].name == "Вакансия 2"
-    assert sorted_vacancies[0].salary == 60000
-    assert sorted_vacancies[0].link == "https://hh.ru/vacancy/2"
-    assert sorted_vacancies[1].name == "Вакансия 1"
-    assert sorted_vacancies[1].salary == 50000
-    assert sorted_vacancies[1].link == "https://hh.ru/vacancy/1"
-    assert sorted_vacancies[2].name == "Вакансия 3"
-    assert sorted_vacancies[2].salary == 40000
-    assert sorted_vacancies[2].link == "https://hh.ru/vacancy/3"
-
-
-def sort_vacancies(filtered_vacancies):
-    sorted_vacancies = sorted(filtered_vacancies, key=lambda x: x["salary"], reverse=True)
-    return sorted_vacancies
-
-# Тестовые данные
-vacancies = [
-    {"title": "Вакансия 1", "salary": 50000},
-    {"title": "Вакансия 2", "salary": 60000},
-    {"title": "Вакансия 3", "salary": 40000}
-]
-
-# Вызов функции и сохранение результата
-sorted_vacancies = sort_vacancies(vacancies)
-
-# Вывод отсортированного списка вакансий
-for vacancy in sorted_vacancies:
-    print(vacancy)
-
-
-{'title': 'Вакансия 2', 'salary': 60000}
-{'title': 'Вакансия 1', 'salary': 50000}
-{'title': 'Вакансия 3', 'salary': 40000}
-
-if __name__ == "__main__":
-    pytest.main()
-
-
-
+    vacancy1 = Vacancy("Test1", "50000", "test1.com")
+    vacancy2 = Vacancy("Test2", "60000", "test2.com")
+    vacancy3 = Vacancy("Test3", "40000", "test3.com")
+    filtered_vacancies = [vacancy1, vacancy2, vacancy3]
+    sorted_vacancies = sort_vacancies(filtered_vacancies)
+    assert sorted_vacancies == [vacancy3, vacancy1, vacancy2]

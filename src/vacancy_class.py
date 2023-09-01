@@ -8,16 +8,16 @@ import requests
 from setting import SJ_API_KEY
 
 
-class Vacancy(ABC):
-    def __init__(self, name, salary, link, description):
-        self.name = name
-        self.salary = salary
-        self.link = link
-        self.description = description
-
+class API(ABC):
     @abstractmethod
     def get_vacancies(self, query: str) -> List[dict]:
         pass
+
+class Vacancy:
+    def __init__(self, name, salary, link):
+        self.name = name
+        self.salary = salary
+        self.link = link
 
     def __eq__(self, other):
         if isinstance(other, Vacancy):
@@ -35,4 +35,4 @@ class Vacancy(ABC):
         return False
 
     def __repr__(self):
-        return f"Vacancy(name='{self.name}', salary='{self.salary}', link='{self.link}', description='{self.description}')"
+        return f"Vacancy(name='{self.name}', salary='{self.salary}', link='{self.link}')"
