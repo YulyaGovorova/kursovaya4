@@ -1,9 +1,16 @@
+from abc import abstractmethod, ABC
 from typing import List
 
 import requests
 
 from setting import SJ_API_KEY
-from src.vacancy_class import Vacancy, API
+from src.vacancy_class import Vacancy
+
+
+class API(ABC):
+    @abstractmethod
+    def get_vacancies(self, query: str) -> List[dict]:
+        pass
 
 
 class HHAPI(API):
@@ -29,11 +36,12 @@ class HHAPI(API):
         hh_vacancies = []
         for vacancy in vacancies:
             name = vacancy['name']
-            salary = vacancy['salary']
+            salary = vacancy["salary"]["from"] if vacancy["salary"] else None
             link = vacancy['alternate_url']
             hh_vacancies.append(Vacancy(name, salary, link))
 
         return hh_vacancies
+
 
 class SJAPI(API):
     def __init__(self, keyword):
@@ -54,8 +62,7 @@ class SJAPI(API):
         return self.get_request()
 
     def get_superjob_vacancies(self):
-        sj_api = SJAPI(SJ_API_KEY)
-        vacancies = sj_api.get_request()
+        vacancies = self.get_request()
 
         sj_vacancies = []
         for vacancy in vacancies:
