@@ -1,18 +1,3 @@
-import json
-import os
-from abc import ABC, abstractmethod
-from typing import List
-
-import requests
-
-from setting import SJ_API_KEY
-
-
-class API(ABC):
-    @abstractmethod
-    def get_vacancies(self, query: str) -> List[dict]:
-        pass
-
 class Vacancy:
     def __init__(self, name, salary, link):
         self.name = name
@@ -26,12 +11,22 @@ class Vacancy:
 
     def __lt__(self, other):
         if isinstance(other, Vacancy):
-            return self.salary < other.salary
+            if other.salary is None:
+                # e.g., 10 < None
+                return False
+            if self.salary is None:
+                # e.g., None < 10
+                return True
         return False
 
     def __gt__(self, other):
         if isinstance(other, Vacancy):
-            return self.salary > other.salary
+            if other.salary is None:
+                # e.g., 10 < None
+                return True
+            if self.salary is None:
+                # e.g., None < 10
+                return False
         return False
 
     def __repr__(self):
